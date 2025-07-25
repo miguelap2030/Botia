@@ -1,0 +1,24 @@
+{
+  "name": "botia-mlm-trading",
+  "version": "1.0.0",
+  "description": "Sistema MLM para bot de trading automático con IA",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "build-css": "tailwindcss -i ./src/input.css -o ./dist/output.css --watch"
+  },
+  "keywords": ["mlm", "trading", "bot", "ai", "tailwind"],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "tailwindcss": "3.3.3",
+    "autoprefixer": "^10.4.16",
+    "postcss": "^8.4.31",
+    "vite": "^5.0.0"
+  },
+  "dependencies": {
+    "alpinejs": "^3.13.3"
+  }
+}
