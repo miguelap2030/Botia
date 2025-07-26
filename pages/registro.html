@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro - Botia MLM Trading</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'trading-primary': '#1a1a2e',
+                        'trading-secondary': '#16213e',
+                        'trading-accent': '#0f3460',
+                        'trading-success': '#00ff88',
+                        'trading-warning': '#ffb347',
+                        'trading-danger': '#ff6b6b',
+                        'trading-gold': '#ffd700',
+                        'mlm-blue': '#2563eb',
+                        'mlm-purple': '#7c3aed',
+                        'mlm-gradient-start': '#667eea',
+                        'mlm-gradient-end': '#764ba2'
+                    }
+                }
+            }
+        }
+    </script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(37, 99, 235, 0.3);
+        }
+        .input-field {
+            transition: all 0.3s ease;
+        }
+        .input-field:focus {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(37, 99, 235, 0.1);
+        }
+        .card-glow {
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+        }
+        .trading-pattern {
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(37, 99, 235, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(124, 58, 237, 0.1) 0%, transparent 50%);
+        }
+        .step-indicator {
+            transition: all 0.3s ease;
+        }
+        .step-indicator.active {
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            color: white;
+        }
+        .step-indicator.completed {
+            background: #00ff88;
+            color: white;
+        }
+    </style>
+</head>
+<body class="trading-pattern">
+    <div class="min-h-screen flex items-center justify-center px-4 py-8" x-data="registrationForm()">
+        <!-- Background Decorative Elements -->
+        <div class="absolute inset-0 overflow-hidden pointer-events-none">
+            <div class="absolute top-1/4 left-1/4 w-64 h-64 bg-mlm-blue opacity-10 rounded-full blur-3xl"></div>
+            <div class="absolute bottom-1/4 right-1/4 w-64 h-64 bg-mlm-purple opacity-10 rounded-full blur-3xl"></div>
+            <div class="absolute top-3/4 left-3/4 w-32 h-32 bg-trading-gold opacity-10 rounded-full blur-2xl"></div>
+        </div>
+
+        <div class="w-full max-w-2xl relative z-10">
+            <!-- Header -->
+            <div class="text-center mb-8">
+                <a href="../index.html" class="inline-flex items-center space-x-3 mb-6 group">
+                    <div class="w-12 h-12 bg-gradient-to-r from-mlm-blue to-mlm-purple rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                        <span class="text-white font-bold text-xl">B</span>
+                    </div>
+                    <h1 class="text-3xl font-bold text-white">Botia</h1>
+                </a>
+                <h2 class="text-2xl font-bold text-white mb-2">Únete a la Revolución MLM</h2>
+                <p class="text-white text-opacity-80">Crea tu cuenta y comienza a generar ingresos pasivos</p>
+            </div>
+
+            <!-- Step Indicator -->
+            <div class="flex justify-center mb-8">
+                <div class="flex space-x-4">
+                    <div class="step-indicator w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold"
+                         :class="currentStep >= 1 ? (currentStep > 1 ? 'completed' : 'active') : 'bg-white bg-opacity-20 text-white'">
+                        1
+                    </div>
+                    <div class="step-indicator w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold"
+                         :class="currentStep >= 2 ? (currentStep > 2 ? 'completed' : 'active') : 'bg-white bg-opacity-20 text-white'">
+                        2
+                    </div>
+                    <div class="step-indicator w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold"
+                         :class="currentStep >= 3 ? 'active' : 'bg-white bg-opacity-20 text-white'">
+                        3
+                    </div>
+                </div>
+            </div>
+
+            <!-- Registration Form -->
+            <div class="bg-white bg-opacity-95 backdrop-blur-md rounded-2xl p-8 card-glow">
+                <form @submit.prevent="handleSubmit">
+                    <!-- Step 1: Personal Information -->
+                    <div x-show="currentStep === 1" x-transition class="space-y-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4 text-center">Información Personal</h3>
+                        
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="firstName" class="block text-gray-700 font-semibold mb-2">
+                                    <svg class="w-5 h-5 inline mr-2" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                                    </svg>
+                                    Nombre
+                                </label>
+                                <input 
+                                    type="text" 
+                                    id="firstName" 
+                                    x-model="form.firstName"
+                                    class="input-field w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mlm-blue focus:border-transparent outline-none"
+                                    placeholder="Tu nombre"
+                                    required
+                                >
+                            </div>
+                            <div>
+                                <label for="lastName" class="block text-gray-700 font-semibold mb-2">
+                                    <svg class="w-5 h-5 inline mr-2" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                                    </svg>
+                                    Apellido
+                                </label>
+                                <input 
+                                    type="text" 
+                                    id="lastName" 
+                                    x-model="form.lastName"
+                                    class="input-field w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mlm-blue focus:border-transparent outline-none"
+                                    placeholder="Tu apellido"
+                                    required
+                                >
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="email" class="block text-gray-700 font-semibold mb-2">
+                                <svg class="w-5 h-5 inline mr-2" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+                                </svg>
+                                Correo Electrónico
+                            </label>
+                            <input 
+                                type="email" 
+                                id="email" 
+                                x-model="form.email"
+                                class="input-field w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mlm-blue focus:border-transparent outline-none"
+                                placeholder="tu@email.com"
+                                required
+                            >
+                        </div>
+
+                        <div>
+                            <label for="phone" class="block text-gray-700 font-semibold mb-2">
+                                <svg class="w-5 h-5 inline mr-2" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
+                                </svg>
+                                Teléfono
+                            </label>
+                            <input 
+                                type="tel" 
+                                id="phone" 
+                                x-model="form.phone"
+                                class="input-field w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mlm-blue focus:border-transparent outline-none"
+                                placeholder="+1 234 567 8900"
+                                required
+                            >
+                        </div>
+
+                        <div class="flex justify-end">
+                            <button type="button" @click="nextStep()" class="btn-primary text-white px-8 py-3 rounded-lg font-semibold">
+                                Siguiente
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Account & MLM Information -->
+                    <div x-show="currentStep === 2" x-transition class="space-y-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4 text-center">Configuración de Cuenta</h3>
+                        
+                        <div>
+                            <label for="username" class="block text-gray-700 font-semibold mb-2">
+                                <svg class="w-5 h-5 inline mr-2" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                                </svg>
+                                Nombre de Usuario
+                            </label>
+                            <input 
+                                type="text" 
+                                id="username" 
+                                x-model="form.username"
+                                class="input-field w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mlm-blue focus:border-transparent outline-none"
+                                placeholder="usuario_unico"
+                                required
+                            >
+                        </div>
+
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="password" class="block text-gray-700 font-semibold mb-2">
+                                    <svg class="w-5 h-5 inline mr-2" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
+                                    </svg>
+                                    Contraseña
+                                </label>
+                                <div class="relative">
+                                    <input 
+                                        :type="showPassword ? 'text' : 'password'" 
+                                        id="password" 
+                                        x-model="form.password"
+                                        class="input-field w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mlm-blue focus:border-transparent outline-none"
+                                        placeholder="••••••••"
+                                        required
+                                    >
+                                    <button 
+                                        type="button" 
+                                        @click="showPassword = !showPassword"
+                                        class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                                    >
+                                        <svg x-show="!showPassword" class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+                                        </svg>
+                                        <svg x-show="showPassword" class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.43-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78l3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                            <div>
+                                <label for="confirmPassword" class="block text-gray-700 font-semibold mb-2">
+                                    <svg class="w-5 h-5 inline mr-2" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
+                                    </svg>
+                                    Confirmar Contraseña
+                                </label>
+                                <input 
+                                    type="password" 
+                                    id="confirmPassword" 
+                                    x-model="form.confirmPassword"
+                                    class="input-field w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mlm-blue focus:border-transparent outline-none"
+                                    placeholder="••••••••"
+                                    required
+                                >
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="referralCode" class="block text-gray-700 font-semibold mb-2">
+                                <svg class="w-5 h-5 inline mr-2" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/>
+                                </svg>
+                                Código de Referido (Opcional)
+                            </label>
+                            <input 
+                                type="text" 
+                                id="referralCode" 
+                                x-model="form.referralCode"
+                                class="input-field w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mlm-blue focus:border-transparent outline-none"
+                                placeholder="Código de quien te refirió"
+                            >
+                            <p class="text-sm text-gray-500 mt-1">Si alguien te invitó, ingresa su código aquí para obtener bonos adicionales</p>
+                        </div>
+
+                        <div class="flex justify-between">
+                            <button type="button" @click="prevStep()" class="bg-gray-200 text-gray-800 px-8 py-3 rounded-lg font-semibold hover:bg-gray-300 transition-colors duration-300">
+                                Anterior
+                            </button>
+                            <button type="button" @click="nextStep()" class="btn-primary text-white px-8 py-3 rounded-lg font-semibold">
+                                Siguiente
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Plan Selection & Terms -->
+                    <div x-show="currentStep === 3" x-transition class="space-y-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4 text-center">Plan de Inversión</h3>
+                        
+                        <!-- Plan Selection -->
+                        <div class="grid md:grid-cols-3 gap-4">
+                            <div class="border-2 rounded-lg p-4 cursor-pointer transition-all duration-300"
+                                 :class="form.plan === 'starter' ? 'border-mlm-blue bg-mlm-blue bg-opacity-10' : 'border-gray-300 hover:border-mlm-blue'"
+                                 @click="form.plan = 'starter'">
+                                <div class="text-center">
+                                    <h4 class="font-bold text-lg text-gray-800">Starter</h4>
+                                    <p class="text-3xl font-bold text-mlm-blue">$100</p>
+                                    <ul class="text-sm text-gray-600 mt-2 space-y-1">
+                                        <li>• Bot básico</li>
+                                        <li>• 5% comisión MLM</li>
+                                        <li>• Soporte email</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="border-2 rounded-lg p-4 cursor-pointer transition-all duration-300 relative"
+                                 :class="form.plan === 'professional' ? 'border-mlm-purple bg-mlm-purple bg-opacity-10' : 'border-gray-300 hover:border-mlm-purple'"
+                                 @click="form.plan = 'professional'">
+                                <div class="absolute -top-2 left-1/2 transform -translate-x-1/2">
+                                    <span class="bg-trading-gold text-trading-primary px-2 py-1 rounded-full text-xs font-bold">POPULAR</span>
+                                </div>
+                                <div class="text-center">
+                                    <h4 class="font-bold text-lg text-gray-800">Professional</h4>
+                                    <p class="text-3xl font-bold text-mlm-purple">$500</p>
+                                    <ul class="text-sm text-gray-600 mt-2 space-y-1">
+                                        <li>• Bot avanzado</li>
+                                        <li>• 10% comisión MLM</li>
+                                        <li>• Soporte prioritario</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="border-2 rounded-lg p-4 cursor-pointer transition-all duration-300"
+                                 :class="form.plan === 'enterprise' ? 'border-trading-gold bg-trading-gold bg-opacity-10' : 'border-gray-300 hover:border-trading-gold'"
+                                 @click="form.plan = 'enterprise'">
+                                <div class="text-center">
+                                    <h4 class="font-bold text-lg text-gray-800">Enterprise</h4>
+                                    <p class="text-3xl font-bold text-trading-gold">$1000</p>
+                                    <ul class="text-sm text-gray-600 mt-2 space-y-1">
+                                        <li>• Bot premium</li>
+                                        <li>• 15% comisión MLM</li>
+                                        <li>• Soporte 24/7</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Terms and Conditions -->
+                        <div class="space-y-4">
+                            <label class="flex items-start space-x-3">
+                                <input type="checkbox" x-model="form.acceptTerms" class="mt-1 rounded border-gray-300 text-mlm-blue focus:ring-mlm-blue" required>
+                                <span class="text-sm text-gray-600">
+                                    Acepto los <a href="#" class="text-mlm-blue hover:text-mlm-purple">términos y condiciones</a> 
+                                    del sistema MLM y entiendo los riesgos asociados al trading automatizado.
+                                </span>
+                            </label>
+                            <label class="flex items-start space-x-3">
+                                <input type="checkbox" x-model="form.acceptPrivacy" class="mt-1 rounded border-gray-300 text-mlm-blue focus:ring-mlm-blue" required>
+                                <span class="text-sm text-gray-600">
+                                    Acepto la <a href="#" class="text-mlm-blue hover:text-mlm-purple">política de privacidad</a> 
+                                    y el procesamiento de mis datos personales.
+                                </span>
+                            </label>
+                            <label class="flex items-start space-x-3">
+                                <input type="checkbox" x-model="form.acceptMarketing" class="mt-1 rounded border-gray-300 text-mlm-blue focus:ring-mlm-blue">
+                                <span class="text-sm text-gray-600">
+                                    Deseo recibir notificaciones sobre actualizaciones del bot y oportunidades de trading.
+                                </span>
+                            </label>
+                        </div>
+
+                        <div class="flex justify-between">
+                            <button type="button" @click="prevStep()" class="bg-gray-200 text-gray-800 px-8 py-3 rounded-lg font-semibold hover:bg-gray-300 transition-colors duration-300">
+                                Anterior
+                            </button>
+                            <button 
+                                type="submit" 
+                                class="btn-primary text-white px-8 py-3 rounded-lg font-semibold"
+                                :disabled="loading || !form.acceptTerms || !form.acceptPrivacy"
+                                :class="{ 'opacity-50 cursor-not-allowed': loading || !form.acceptTerms || !form.acceptPrivacy }"
+                            >
+                                <span x-show="!loading">Crear Cuenta</span>
+                                <span x-show="loading" class="flex items-center justify-center">
+                                    <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    Creando cuenta...
+                                </span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Success/Error Messages -->
+                    <div x-show="message" x-transition class="text-center mt-6">
+                        <div :class="messageType === 'success' ? 'text-trading-success' : 'text-trading-danger'" 
+                             class="font-semibold" x-text="message">
+                        </div>
+                    </div>
+                </form>
+
+                <!-- Login Link -->
+                <div class="mt-8 pt-6 border-t border-gray-200 text-center">
+                    <p class="text-gray-600">
+                        ¿Ya tienes una cuenta? 
+                        <a href="login.html" class="text-mlm-blue hover:text-mlm-purple font-semibold transition-colors duration-300">
+                            Inicia sesión aquí
+                        </a>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Security Info -->
+            <div class="text-center mt-6">
+                <p class="text-white text-opacity-70 text-sm">
+                    🔒 Datos protegidos con encriptación de grado militar
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function registrationForm() {
+            return {
+                currentStep: 1,
+                form: {
+                    firstName: '',
+                    lastName: '',
+                    email: '',
+                    phone: '',
+                    username: '',
+                    password: '',
+                    confirmPassword: '',
+                    referralCode: '',
+                    plan: 'professional',
+                    acceptTerms: false,
+                    acceptPrivacy: false,
+                    acceptMarketing: false
+                },
+                showPassword: false,
+                loading: false,
+                message: '',
+                messageType: 'success',
+
+                nextStep() {
+                    if (this.validateCurrentStep()) {
+                        this.currentStep++;
+                    }
+                },
+
+                prevStep() {
+                    this.currentStep--;
+                },
+
+                validateCurrentStep() {
+                    if (this.currentStep === 1) {
+                        return this.form.firstName && this.form.lastName && this.form.email && this.form.phone;
+                    } else if (this.currentStep === 2) {
+                        if (this.form.password !== this.form.confirmPassword) {
+                            this.message = 'Las contraseñas no coinciden';
+                            this.messageType = 'error';
+                            return false;
+                        }
+                        return this.form.username && this.form.password && this.form.confirmPassword;
+                    }
+                    return true;
+                },
+
+                async handleSubmit() {
+                    if (!this.validateCurrentStep()) return;
+
+                    this.loading = true;
+                    this.message = '';
+
+                    try {
+                        await new Promise(resolve => setTimeout(resolve, 3000));
+                        
+                        this.message = '¡Cuenta creada exitosamente! Bienvenido a Botia MLM Trading.';
+                        this.messageType = 'success';
+                        
+                        setTimeout(() => {
+                            // window.location.href = 'login.html';
+                            alert('¡Registro exitoso! (En una implementación real, redirigiría al login o dashboard)');
+                        }, 2000);
+                    } catch (error) {
+                        this.message = 'Error al crear la cuenta. Intenta nuevamente.';
+                        this.messageType = 'error';
+                    } finally {
+                        this.loading = false;
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>
