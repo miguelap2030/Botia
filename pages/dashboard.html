@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Botia MLM Trading</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'trading-primary': '#1a1a2e',
+                        'trading-secondary': '#16213e',
+                        'trading-accent': '#0f3460',
+                        'trading-success': '#00ff88',
+                        'trading-warning': '#ffb347',
+                        'trading-danger': '#ff6b6b',
+                        'trading-gold': '#ffd700',
+                        'mlm-blue': '#2563eb',
+                        'mlm-purple': '#7c3aed',
+                        'mlm-gradient-start': '#667eea',
+                        'mlm-gradient-end': '#764ba2'
+                    }
+                }
+            }
+        }
+    </script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(37, 99, 235, 0.3);
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .sidebar {
+            background: rgba(26, 26, 46, 0.95);
+            backdrop-filter: blur(10px);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .nav-item:hover {
+            background: rgba(37, 99, 235, 0.1);
+            border-left: 3px solid #2563eb;
+        }
+        .nav-item.active {
+            background: rgba(37, 99, 235, 0.2);
+            border-left: 3px solid #2563eb;
+        }
+        .pulse-animation {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body>
+    <div x-data="dashboardApp()" class="flex h-screen">
+        <!-- Sidebar -->
+        <div class="sidebar w-64 text-white p-6">
+            <div class="flex items-center mb-8">
+                <div class="w-10 h-10 bg-gradient-to-r from-mlm-blue to-mlm-purple rounded-lg flex items-center justify-center mr-3">
+                    <i class="fas fa-robot text-white"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold">Botia</h1>
+                    <p class="text-sm text-gray-300">MLM Trading</p>
+                </div>
+            </div>
+
+            <nav class="space-y-2">
+                <a href="#" @click="activeTab = 'overview'" 
+                   :class="activeTab === 'overview' ? 'nav-item active' : 'nav-item'"
+                   class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
+                    <i class="fas fa-chart-line mr-3"></i>
+                    Resumen General
+                </a>
+                <a href="#" @click="activeTab = 'trading'" 
+                   :class="activeTab === 'trading' ? 'nav-item active' : 'nav-item'"
+                   class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
+                    <i class="fas fa-robot mr-3"></i>
+                    Bot de Trading
+                </a>
+                <a href="#" @click="activeTab = 'mlm'" 
+                   :class="activeTab === 'mlm' ? 'nav-item active' : 'nav-item'"
+                   class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
+                    <i class="fas fa-users mr-3"></i>
+                    Red MLM
+                </a>
+                <a href="#" @click="activeTab = 'wallet'" 
+                   :class="activeTab === 'wallet' ? 'nav-item active' : 'nav-item'"
+                   class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
+                    <i class="fas fa-wallet mr-3"></i>
+                    Billetera
+                </a>
+                <a href="#" @click="activeTab = 'referrals'" 
+                   :class="activeTab === 'referrals' ? 'nav-item active' : 'nav-item'"
+                   class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
+                    <i class="fas fa-share-alt mr-3"></i>
+                    Referidos
+                </a>
+                <a href="#" @click="activeTab = 'settings'" 
+                   :class="activeTab === 'settings' ? 'nav-item active' : 'nav-item'"
+                   class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
+                    <i class="fas fa-cog mr-3"></i>
+                    Configuración
+                </a>
+            </nav>
+
+            <div class="mt-auto pt-8">
+                <div class="flex items-center">
+                    <img src="https://via.placeholder.com/40x40/2563eb/ffffff?text=U" alt="Usuario" class="w-10 h-10 rounded-full mr-3">
+                    <div>
+                        <p class="text-sm font-medium" x-text="user.name"></p>
+                        <p class="text-xs text-gray-300" x-text="user.plan"></p>
+                    </div>
+                </div>
+                <button class="w-full mt-4 px-4 py-2 text-sm bg-red-600 hover:bg-red-700 rounded-lg transition-colors">
+                    <i class="fas fa-sign-out-alt mr-2"></i>
+                    Cerrar Sesión
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 overflow-auto">
+            <!-- Header -->
+            <div class="bg-white/90 backdrop-blur-sm border-b border-gray-200 px-6 py-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-900" x-text="getTabTitle()"></h2>
+                        <p class="text-gray-600">Gestiona tu cuenta y monitorea tus inversiones</p>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <div class="flex items-center space-x-2">
+                            <div class="w-3 h-3 bg-trading-success rounded-full pulse-animation"></div>
+                            <span class="text-sm text-gray-600">Bot Activo</span>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-sm text-gray-600">Balance Total</p>
+                            <p class="text-xl font-bold text-trading-success" x-text="formatCurrency(user.totalBalance)"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard Content -->
+            <div class="p-6">
+                <!-- Overview Tab -->
+                <div x-show="activeTab === 'overview'" class="space-y-6">
+                    <!-- Stats Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div class="card rounded-xl p-6">
+                            <div class="flex items-center">
+                                <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-dollar-sign text-blue-600 text-xl"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <p class="text-sm text-gray-600">Balance Disponible</p>
+                                    <p class="text-2xl font-bold text-gray-900" x-text="formatCurrency(user.availableBalance)"></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card rounded-xl p-6">
+                            <div class="flex items-center">
+                                <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-chart-line text-green-600 text-xl"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <p class="text-sm text-gray-600">Ganancias Hoy</p>
+                                    <p class="text-2xl font-bold text-trading-success" x-text="formatCurrency(user.todayEarnings)"></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card rounded-xl p-6">
+                            <div class="flex items-center">
+                                <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-users text-purple-600 text-xl"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <p class="text-sm text-gray-600">Red MLM</p>
+                                    <p class="text-2xl font-bold text-gray-900" x-text="user.networkSize"></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card rounded-xl p-6">
+                            <div class="flex items-center">
+                                <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-percentage text-yellow-600 text-xl"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <p class="text-sm text-gray-600">ROI Total</p>
+                                    <p class="text-2xl font-bold text-trading-gold" x-text="user.totalROI + '%'"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Charts Row -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="card rounded-xl p-6">
+                            <h3 class="text-lg font-semibold mb-4">Rendimiento del Bot (7 días)</h3>
+                            <canvas id="performanceChart" width="400" height="200"></canvas>
+                        </div>
+
+                        <div class="card rounded-xl p-6">
+                            <h3 class="text-lg font-semibold mb-4">Ingresos MLM (Últimos 30 días)</h3>
+                            <canvas id="mlmChart" width="400" height="200"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activity -->
+                    <div class="card rounded-xl p-6">
+                        <h3 class="text-lg font-semibold mb-4">Actividad Reciente</h3>
+                        <div class="space-y-4">
+                            <template x-for="activity in recentActivity" :key="activity.id">
+                                <div class="flex items-center justify-between py-3 border-b border-gray-100 last:border-b-0">
+                                    <div class="flex items-center">
+                                        <div :class="activity.type === 'earning' ? 'bg-green-100 text-green-600' : 
+                                                     activity.type === 'referral' ? 'bg-blue-100 text-blue-600' : 
+                                                     'bg-yellow-100 text-yellow-600'"
+                                             class="w-10 h-10 rounded-full flex items-center justify-center mr-4">
+                                            <i :class="activity.icon"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-medium text-gray-900" x-text="activity.description"></p>
+                                            <p class="text-sm text-gray-500" x-text="activity.time"></p>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <p :class="activity.amount > 0 ? 'text-trading-success' : 'text-gray-600'"
+                                           class="font-semibold" x-text="formatCurrency(activity.amount)"></p>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Trading Tab -->
+                <div x-show="activeTab === 'trading'" class="space-y-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Bot Status -->
+                        <div class="card rounded-xl p-6">
+                            <h3 class="text-lg font-semibold mb-4">Estado del Bot</h3>
+                            <div class="space-y-4">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-600">Estado:</span>
+                                    <div class="flex items-center">
+                                        <div class="w-3 h-3 bg-trading-success rounded-full mr-2 pulse-animation"></div>
+                                        <span class="text-trading-success font-medium">Activo</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-600">Operaciones Hoy:</span>
+                                    <span class="font-semibold">127</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-600">Tasa de Éxito:</span>
+                                    <span class="font-semibold text-trading-success">89.3%</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-600">Tiempo Activo:</span>
+                                    <span class="font-semibold">24/7</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Current Trades -->
+                        <div class="lg:col-span-2 card rounded-xl p-6">
+                            <h3 class="text-lg font-semibold mb-4">Operaciones Actuales</h3>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-sm">
+                                    <thead>
+                                        <tr class="border-b border-gray-200">
+                                            <th class="text-left py-2">Par</th>
+                                            <th class="text-left py-2">Tipo</th>
+                                            <th class="text-left py-2">Entrada</th>
+                                            <th class="text-left py-2">Actual</th>
+                                            <th class="text-left py-2">P&L</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <template x-for="trade in currentTrades" :key="trade.id">
+                                            <tr class="border-b border-gray-100">
+                                                <td class="py-3 font-medium" x-text="trade.pair"></td>
+                                                <td class="py-3">
+                                                    <span :class="trade.type === 'BUY' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'"
+                                                          class="px-2 py-1 rounded-full text-xs font-medium" x-text="trade.type"></span>
+                                                </td>
+                                                <td class="py-3" x-text="trade.entryPrice"></td>
+                                                <td class="py-3" x-text="trade.currentPrice"></td>
+                                                <td class="py-3">
+                                                    <span :class="trade.pnl >= 0 ? 'text-trading-success' : 'text-trading-danger'"
+                                                          class="font-semibold" x-text="formatCurrency(trade.pnl)"></span>
+                                                </td>
+                                            </tr>
+                                        </template>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MLM Tab -->
+                <div x-show="activeTab === 'mlm'" class="space-y-6">
+                    <!-- MLM Stats -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="card rounded-xl p-6">
+                            <h3 class="text-lg font-semibold mb-4">Mi Red</h3>
+                            <div class="space-y-3">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Nivel 1:</span>
+                                    <span class="font-semibold">12 personas</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Nivel 2:</span>
+                                    <span class="font-semibold">48 personas</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Nivel 3:</span>
+                                    <span class="font-semibold">156 personas</span>
+                                </div>
+                                <div class="border-t pt-3 mt-3">
+                                    <div class="flex justify-between">
+                                        <span class="font-semibold">Total:</span>
+                                        <span class="font-bold text-mlm-blue">216 personas</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card rounded-xl p-6">
+                            <h3 class="text-lg font-semibold mb-4">Comisiones</h3>
+                            <div class="space-y-3">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Esta semana:</span>
+                                    <span class="font-semibold text-trading-success">$1,245</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Este mes:</span>
+                                    <span class="font-semibold text-trading-success">$4,890</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Total histórico:</span>
+                                    <span class="font-semibold text-trading-success">$28,450</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card rounded-xl p-6">
+                            <h3 class="text-lg font-semibold mb-4">Rango MLM</h3>
+                            <div class="text-center">
+                                <div class="w-20 h-20 bg-gradient-to-r from-mlm-blue to-mlm-purple rounded-full flex items-center justify-center mx-auto mb-3">
+                                    <i class="fas fa-crown text-white text-2xl"></i>
+                                </div>
+                                <h4 class="font-bold text-lg">Gold Leader</h4>
+                                <p class="text-sm text-gray-600">Próximo: Platinum (84 referidos más)</p>
+                                <div class="w-full bg-gray-200 rounded-full h-2 mt-3">
+                                    <div class="bg-gradient-to-r from-mlm-blue to-mlm-purple h-2 rounded-full" style="width: 72%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Network Tree -->
+                    <div class="card rounded-xl p-6">
+                        <h3 class="text-lg font-semibold mb-4">Árbol de Red</h3>
+                        <div class="text-center">
+                            <p class="text-gray-600 mb-4">Visualización de tu red MLM</p>
+                            <!-- Simplified network tree visualization -->
+                            <div class="flex justify-center">
+                                <div class="space-y-4">
+                                    <!-- Level 0 (You) -->
+                                    <div class="flex justify-center">
+                                        <div class="w-12 h-12 bg-gradient-to-r from-mlm-blue to-mlm-purple rounded-full flex items-center justify-center">
+                                            <i class="fas fa-user text-white"></i>
+                                        </div>
+                                    </div>
+                                    <!-- Level 1 -->
+                                    <div class="flex justify-center space-x-8">
+                                        <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                            <i class="fas fa-user text-blue-600"></i>
+                                        </div>
+                                        <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                            <i class="fas fa-user text-blue-600"></i>
+                                        </div>
+                                        <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                            <i class="fas fa-user text-blue-600"></i>
+                                        </div>
+                                    </div>
+                                    <!-- Level 2 -->
+                                    <div class="flex justify-center space-x-4">
+                                        <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                                            <i class="fas fa-user text-purple-600 text-xs"></i>
+                                        </div>
+                                        <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                                            <i class="fas fa-user text-purple-600 text-xs"></i>
+                                        </div>
+                                        <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                                            <i class="fas fa-user text-purple-600 text-xs"></i>
+                                        </div>
+                                        <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                                            <i class="fas fa-user text-purple-600 text-xs"></i>
+                                        </div>
+                                        <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                                            <i class="fas fa-user text-purple-600 text-xs"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Wallet Tab -->
+                <div x-show="activeTab === 'wallet'" class="space-y-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Balance Card -->
+                        <div class="card rounded-xl p-6">
+                            <h3 class="text-lg font-semibold mb-4">Balance de Billetera</h3>
+                            <div class="space-y-4">
+                                <div class="text-center py-6">
+                                    <p class="text-3xl font-bold text-trading-success" x-text="formatCurrency(user.totalBalance)"></p>
+                                    <p class="text-gray-600">Balance Total</p>
+                                </div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div class="text-center p-4 bg-gray-50 rounded-lg">
+                                        <p class="text-lg font-semibold" x-text="formatCurrency(user.availableBalance)"></p>
+                                        <p class="text-sm text-gray-600">Disponible</p>
+                                    </div>
+                                    <div class="text-center p-4 bg-gray-50 rounded-lg">
+                                        <p class="text-lg font-semibold" x-text="formatCurrency(user.investedBalance)"></p>
+                                        <p class="text-sm text-gray-600">Invertido</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quick Actions -->
+                        <div class="card rounded-xl p-6">
+                            <h3 class="text-lg font-semibold mb-4">Acciones Rápidas</h3>
+                            <div class="space-y-3">
+                                <button class="w-full btn-primary text-white py-3 px-4 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-plus mr-2"></i>
+                                    Depositar Fondos
+                                </button>
+                                <button class="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 py-3 px-4 rounded-lg flex items-center justify-center transition-colors">
+                                    <i class="fas fa-minus mr-2"></i>
+                                    Retirar Fondos
+                                </button>
+                                <button class="w-full bg-purple-100 hover:bg-purple-200 text-purple-800 py-3 px-4 rounded-lg flex items-center justify-center transition-colors">
+                                    <i class="fas fa-exchange-alt mr-2"></i>
+                                    Transferir
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Transaction History -->
+                    <div class="card rounded-xl p-6">
+                        <h3 class="text-lg font-semibold mb-4">Historial de Transacciones</h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm">
+                                <thead>
+                                    <tr class="border-b border-gray-200">
+                                        <th class="text-left py-2">Fecha</th>
+                                        <th class="text-left py-2">Tipo</th>
+                                        <th class="text-left py-2">Descripción</th>
+                                        <th class="text-left py-2">Monto</th>
+                                        <th class="text-left py-2">Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <template x-for="transaction in transactions" :key="transaction.id">
+                                        <tr class="border-b border-gray-100">
+                                            <td class="py-3" x-text="transaction.date"></td>
+                                            <td class="py-3">
+                                                <span :class="transaction.type === 'deposit' ? 'bg-green-100 text-green-800' : 
+                                                               transaction.type === 'withdrawal' ? 'bg-red-100 text-red-800' : 
+                                                               'bg-blue-100 text-blue-800'"
+                                                      class="px-2 py-1 rounded-full text-xs font-medium" x-text="transaction.typeLabel"></span>
+                                            </td>
+                                            <td class="py-3" x-text="transaction.description"></td>
+                                            <td class="py-3">
+                                                <span :class="transaction.amount >= 0 ? 'text-trading-success' : 'text-trading-danger'"
+                                                      class="font-semibold" x-text="formatCurrency(transaction.amount)"></span>
+                                            </td>
+                                            <td class="py-3">
+                                                <span :class="transaction.status === 'completed' ? 'bg-green-100 text-green-800' : 
+                                                               transaction.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
+                                                               'bg-red-100 text-red-800'"
+                                                      class="px-2 py-1 rounded-full text-xs font-medium" x-text="transaction.statusLabel"></span>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Referrals Tab -->
+                <div x-show="activeTab === 'referrals'" class="space-y-6">
+                    <!-- Referral Link -->
+                    <div class="card rounded-xl p-6">
+                        <h3 class="text-lg font-semibold mb-4">Tu Enlace de Referido</h3>
+                        <div class="flex items-center space-x-3">
+                            <input type="text" :value="user.referralLink" readonly 
+                                   class="flex-1 px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-700">
+                            <button @click="copyReferralLink()" 
+                                    class="btn-primary text-white px-6 py-3 rounded-lg flex items-center">
+                                <i class="fas fa-copy mr-2"></i>
+                                Copiar
+                            </button>
+                        </div>
+                        <p class="text-sm text-gray-600 mt-2">Comparte este enlace para ganar comisiones por cada referido</p>
+                    </div>
+
+                    <!-- Referral Stats -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="card rounded-xl p-6 text-center">
+                            <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i class="fas fa-users text-blue-600 text-2xl"></i>
+                            </div>
+                            <h4 class="text-2xl font-bold text-gray-900">216</h4>
+                            <p class="text-gray-600">Total Referidos</p>
+                        </div>
+
+                        <div class="card rounded-xl p-6 text-center">
+                            <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i class="fas fa-dollar-sign text-green-600 text-2xl"></i>
+                            </div>
+                            <h4 class="text-2xl font-bold text-trading-success">$28,450</h4>
+                            <p class="text-gray-600">Comisiones Totales</p>
+                        </div>
+
+                        <div class="card rounded-xl p-6 text-center">
+                            <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i class="fas fa-chart-line text-purple-600 text-2xl"></i>
+                            </div>
+                            <h4 class="text-2xl font-bold text-purple-600">15%</h4>
+                            <p class="text-gray-600">Tasa de Comisión</p>
+                        </div>
+                    </div>
+
+                    <!-- Recent Referrals -->
+                    <div class="card rounded-xl p-6">
+                        <h3 class="text-lg font-semibold mb-4">Referidos Recientes</h3>
+                        <div class="space-y-4">
+                            <template x-for="referral in recentReferrals" :key="referral.id">
+                                <div class="flex items-center justify-between py-3 border-b border-gray-100 last:border-b-0">
+                                    <div class="flex items-center">
+                                        <img :src="referral.avatar" :alt="referral.name" class="w-10 h-10 rounded-full mr-4">
+                                        <div>
+                                            <p class="font-medium text-gray-900" x-text="referral.name"></p>
+                                            <p class="text-sm text-gray-500" x-text="referral.joinDate"></p>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="font-semibold text-trading-success" x-text="formatCurrency(referral.commission)"></p>
+                                        <p class="text-sm text-gray-500" x-text="referral.plan"></p>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Settings Tab -->
+                <div x-show="activeTab === 'settings'" class="space-y-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Profile Settings -->
+                        <div class="card rounded-xl p-6">
+                            <h3 class="text-lg font-semibold mb-4">Configuración de Perfil</h3>
+                            <form class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Nombre Completo</label>
+                                    <input type="text" :value="user.name" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mlm-blue focus:border-transparent">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                                    <input type="email" :value="user.email" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mlm-blue focus:border-transparent">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Teléfono</label>
+                                    <input type="tel" :value="user.phone" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mlm-blue focus:border-transparent">
+                                </div>
+                                <button type="submit" class="w-full btn-primary text-white py-3 rounded-lg">
+                                    Actualizar Perfil
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Security Settings -->
+                        <div class="card rounded-xl p-6">
+                            <h3 class="text-lg font-semibold mb-4">Configuración de Seguridad</h3>
+                            <div class="space-y-4">
+                                <div class="flex items-center justify-between py-3 border-b border-gray-100">
+                                    <div>
+                                        <p class="font-medium text-gray-900">Autenticación de Dos Factores</p>
+                                        <p class="text-sm text-gray-600">Protege tu cuenta con 2FA</p>
+                                    </div>
+                                    <button class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
+                                        Activado
+                                    </button>
+                                </div>
+                                <div class="flex items-center justify-between py-3 border-b border-gray-100">
+                                    <div>
+                                        <p class="font-medium text-gray-900">Notificaciones por Email</p>
+                                        <p class="text-sm text-gray-600">Recibe alertas de tu cuenta</p>
+                                    </div>
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" checked class="sr-only peer">
+                                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-mlm-blue"></div>
+                                    </label>
+                                </div>
+                                <button class="w-full bg-red-100 hover:bg-red-200 text-red-800 py-3 rounded-lg transition-colors">
+                                    Cambiar Contraseña
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function dashboardApp() {
+            return {
+                activeTab: 'overview',
+                user: {
+                    name: 'Juan Pérez',
+                    email: 'juan@email.com',
+                    phone: '+1 234 567 8900',
+                    plan: 'Professional',
+                    totalBalance: 15420.50,
+                    availableBalance: 8920.30,
+                    investedBalance: 6500.20,
+                    todayEarnings: 245.80,
+                    networkSize: 216,
+                    totalROI: 28.5,
+                    referralLink: 'https://botia.com/ref/juan123'
+                },
+                
+                recentActivity: [
+                    {
+                        id: 1,
+                        type: 'earning',
+                        icon: 'fas fa-chart-line',
+                        description: 'Ganancia del bot de trading',
+                        amount: 125.40,
+                        time: 'Hace 2 horas'
+                    },
+                    {
+                        id: 2,
+                        type: 'referral',
+                        icon: 'fas fa-user-plus',
+                        description: 'Nuevo referido: María García',
+                        amount: 50.00,
+                        time: 'Hace 4 horas'
+                    },
+                    {
+                        id: 3,
+                        type: 'trading',
+                        icon: 'fas fa-robot',
+                        description: 'Bot ejecutó 15 operaciones',
+                        amount: 0,
+                        time: 'Hace 6 horas'
+                    }
+                ],
+
+                currentTrades: [
+                    {
+                        id: 1,
+                        pair: 'EUR/USD',
+                        type: 'BUY',
+                        entryPrice: '1.0850',
+                        currentPrice: '1.0875',
+                        pnl: 125.40
+                    },
+                    {
+                        id: 2,
+                        pair: 'GBP/USD',
+                        type: 'SELL',
+                        entryPrice: '1.2650',
+                        currentPrice: '1.2630',
+                        pnl: 89.20
+                    },
+                    {
+                        id: 3,
+                        pair: 'BTC/USD',
+                        type: 'BUY',
+                        entryPrice: '45250',
+                        currentPrice: '45180',
+                        pnl: -35.60
+                    }
+                ],
+
+                transactions: [
+                    {
+                        id: 1,
+                        date: '2024-01-15',
+                        type: 'deposit',
+                        typeLabel: 'Depósito',
+                        description: 'Depósito inicial',
+                        amount: 1000.00,
+                        status: 'completed',
+                        statusLabel: 'Completado'
+                    },
+                    {
+                        id: 2,
+                        date: '2024-01-14',
+                        type: 'earning',
+                        typeLabel: 'Ganancia',
+                        description: 'Ganancia del bot',
+                        amount: 125.40,
+                        status: 'completed',
+                        statusLabel: 'Completado'
+                    },
+                    {
+                        id: 3,
+                        date: '2024-01-13',
+                        type: 'withdrawal',
+                        typeLabel: 'Retiro',
+                        description: 'Retiro de ganancias',
+                        amount: -500.00,
+                        status: 'pending',
+                        statusLabel: 'Pendiente'
+                    }
+                ],
+
+                recentReferrals: [
+                    {
+                        id: 1,
+                        name: 'María García',
+                        avatar: 'https://via.placeholder.com/40x40/2563eb/ffffff?text=MG',
+                        joinDate: '15 Enero 2024',
+                        commission: 50.00,
+                        plan: 'Starter'
+                    },
+                    {
+                        id: 2,
+                        name: 'Carlos López',
+                        avatar: 'https://via.placeholder.com/40x40/7c3aed/ffffff?text=CL',
+                        joinDate: '12 Enero 2024',
+                        commission: 100.00,
+                        plan: 'Professional'
+                    },
+                    {
+                        id: 3,
+                        name: 'Ana Martínez',
+                        avatar: 'https://via.placeholder.com/40x40/059669/ffffff?text=AM',
+                        joinDate: '10 Enero 2024',
+                        commission: 150.00,
+                        plan: 'Enterprise'
+                    }
+                ],
+
+                getTabTitle() {
+                    const titles = {
+                        'overview': 'Resumen General',
+                        'trading': 'Bot de Trading',
+                        'mlm': 'Red MLM',
+                        'wallet': 'Billetera',
+                        'referrals': 'Referidos',
+                        'settings': 'Configuración'
+                    };
+                    return titles[this.activeTab] || 'Dashboard';
+                },
+
+                formatCurrency(amount) {
+                    return new Intl.NumberFormat('en-US', {
+                        style: 'currency',
+                        currency: 'USD'
+                    }).format(amount);
+                },
+
+                copyReferralLink() {
+                    navigator.clipboard.writeText(this.user.referralLink).then(() => {
+                        alert('Enlace copiado al portapapeles');
+                    });
+                },
+
+                init() {
+                    // Initialize charts after DOM is loaded
+                    this.$nextTick(() => {
+                        this.initCharts();
+                    });
+                },
+
+                initCharts() {
+                    // Performance Chart
+                    const performanceCtx = document.getElementById('performanceChart');
+                    if (performanceCtx) {
+                        new Chart(performanceCtx, {
+                            type: 'line',
+                            data: {
+                                labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
+                                datasets: [{
+                                    label: 'Ganancias ($)',
+                                    data: [120, 190, 300, 250, 280, 350, 420],
+                                    borderColor: '#2563eb',
+                                    backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                                    tension: 0.4,
+                                    fill: true
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    legend: {
+                                        display: false
+                                    }
+                                },
+                                scales: {
+                                    y: {
+                                        beginAtZero: true,
+                                        grid: {
+                                            color: 'rgba(0, 0, 0, 0.1)'
+                                        }
+                                    },
+                                    x: {
+                                        grid: {
+                                            display: false
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                    }
+
+                    // MLM Chart
+                    const mlmCtx = document.getElementById('mlmChart');
+                    if (mlmCtx) {
+                        new Chart(mlmCtx, {
+                            type: 'bar',
+                            data: {
+                                labels: ['Sem 1', 'Sem 2', 'Sem 3', 'Sem 4'],
+                                datasets: [{
+                                    label: 'Comisiones MLM ($)',
+                                    data: [850, 1200, 950, 1400],
+                                    backgroundColor: 'rgba(124, 58, 237, 0.8)',
+                                    borderColor: '#7c3aed',
+                                    borderWidth: 1
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    legend: {
+                                        display: false
+                                    }
+                                },
+                                scales: {
+                                    y: {
+                                        beginAtZero: true,
+                                        grid: {
+                                            color: 'rgba(0, 0, 0, 0.1)'
+                                        }
+                                    },
+                                    x: {
+                                        grid: {
+                                            display: false
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>

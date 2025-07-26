@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administración - Botia MLM Trading</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'trading-primary': '#1a1a2e',
+                        'trading-secondary': '#16213e',
+                        'trading-accent': '#0f3460',
+                        'trading-success': '#00ff88',
+                        'trading-warning': '#ffb347',
+                        'trading-danger': '#ff6b6b',
+                        'trading-gold': '#ffd700',
+                        'mlm-blue': '#2563eb',
+                        'mlm-purple': '#7c3aed',
+                        'mlm-gradient-start': '#667eea',
+                        'mlm-gradient-end': '#764ba2'
+                    }
+                }
+            }
+        }
+    </script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(37, 99, 235, 0.3);
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .sidebar {
+            background: rgba(26, 26, 46, 0.98);
+            backdrop-filter: blur(10px);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .nav-item:hover {
+            background: rgba(37, 99, 235, 0.1);
+            border-left: 3px solid #2563eb;
+        }
+        .nav-item.active {
+            background: rgba(37, 99, 235, 0.2);
+            border-left: 3px solid #2563eb;
+        }
+        .pulse-animation {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .status-online {
+            background: #00ff88;
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
+        }
+        .status-offline {
+            background: #ff6b6b;
+        }
+        .admin-header {
+            background: rgba(26, 26, 46, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div x-data="adminApp()" class="flex h-screen">
+        <!-- Sidebar -->
+        <div class="sidebar w-64 text-white p-6">
+            <div class="flex items-center mb-8">
+                <div class="w-10 h-10 bg-gradient-to-r from-red-500 to-red-700 rounded-lg flex items-center justify-center mr-3">
+                    <i class="fas fa-shield-alt text-white"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold">Admin Panel</h1>
+                    <p class="text-sm text-gray-300">Botia MLM</p>
+                </div>
+            </div>
+
+            <nav class="space-y-2">
+                <a href="#" @click="activeTab = 'dashboard'" 
+                   :class="activeTab === 'dashboard' ? 'nav-item active' : 'nav-item'"
+                   class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
+                    <i class="fas fa-tachometer-alt mr-3"></i>
+                    Dashboard
+                </a>
+                <a href="#" @click="activeTab = 'users'" 
+                   :class="activeTab === 'users' ? 'nav-item active' : 'nav-item'"
+                   class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
+                    <i class="fas fa-users mr-3"></i>
+                    Gestión de Usuarios
+                </a>
+                <a href="#" @click="activeTab = 'mlm'" 
+                   :class="activeTab === 'mlm' ? 'nav-item active' : 'nav-item'"
+                   class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
+                    <i class="fas fa-sitemap mr-3"></i>
+                    Red MLM
+                </a>
+                <a href="#" @click="activeTab = 'trading'" 
+                   :class="activeTab === 'trading' ? 'nav-item active' : 'nav-item'"
+                   class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
+                    <i class="fas fa-robot mr-3"></i>
+                    Control de Trading
+                </a>
+                <a href="#" @click="activeTab = 'finances'" 
+                   :class="activeTab === 'finances' ? 'nav-item active' : 'nav-item'"
+                   class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
+                    <i class="fas fa-chart-bar mr-3"></i>
+                    Finanzas
+                </a>
+                <a href="#" @click="activeTab = 'withdrawals'" 
+                   :class="activeTab === 'withdrawals' ? 'nav-item active' : 'nav-item'"
+                   class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
+                    <i class="fas fa-money-bill-wave mr-3"></i>
+                    Retiros
+                </a>
+                <a href="#" @click="activeTab = 'settings'" 
+                   :class="activeTab === 'settings' ? 'nav-item active' : 'nav-item'"
+                   class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
+                    <i class="fas fa-cogs mr-3"></i>
+                    Configuración
+                </a>
+                <a href="#" @click="activeTab = 'logs'" 
+                   :class="activeTab === 'logs' ? 'nav-item active' : 'nav-item'"
+                   class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
+                    <i class="fas fa-list-alt mr-3"></i>
+                    Logs del Sistema
+                </a>
+            </nav>
+
+            <div class="mt-auto pt-8">
+                <div class="flex items-center">
+                    <img src="https://via.placeholder.com/40x40/dc2626/ffffff?text=A" alt="Admin" class="w-10 h-10 rounded-full mr-3">
+                    <div>
+                        <p class="text-sm font-medium">Admin</p>
+                        <p class="text-xs text-gray-300">Superusuario</p>
+                    </div>
+                </div>
+                <button class="w-full mt-4 px-4 py-2 text-sm bg-red-600 hover:bg-red-700 rounded-lg transition-colors">
+                    <i class="fas fa-sign-out-alt mr-2"></i>
+                    Cerrar Sesión
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 overflow-auto">
+            <!-- Header -->
+            <div class="admin-header text-white px-6 py-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-2xl font-bold" x-text="getTabTitle()"></h2>
+                        <p class="text-gray-300">Panel de control administrativo</p>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <div class="flex items-center space-x-2">
+                            <div class="w-3 h-3 status-online rounded-full pulse-animation"></div>
+                            <span class="text-sm">Sistema Operativo</span>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-sm text-gray-300">Usuarios Activos</p>
+                            <p class="text-xl font-bold text-trading-success" x-text="systemStats.activeUsers"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard Content -->
+            <div class="p-6">
+                <!-- Dashboard Tab -->
+                <div x-show="activeTab === 'dashboard'" class="space-y-6">
+                    <!-- System Stats -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div class="card rounded-xl p-6">
+                            <div class="flex items-center">
+                                <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-users text-blue-600 text-xl"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <p class="text-sm text-gray-600">Total Usuarios</p>
+                                    <p class="text-2xl font-bold text-gray-900" x-text="systemStats.totalUsers"></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card rounded-xl p-6">
+                            <div class="flex items-center">
+                                <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-dollar-sign text-green-600 text-xl"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <p class="text-sm text-gray-600">Volumen Total</p>
+                                    <p class="text-2xl font-bold text-trading-success" x-text="formatCurrency(systemStats.totalVolume)"></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card rounded-xl p-6">
+                            <div class="flex items-center">
+                                <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-robot text-purple-600 text-xl"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <p class="text-sm text-gray-600">Bots Activos</p>
+                                    <p class="text-2xl font-bold text-gray-900" x-text="systemStats.activeBots"></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card rounded-xl p-6">
+                            <div class="flex items-center">
+                                <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-chart-line text-yellow-600 text-xl"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <p class="text-sm text-gray-600">ROI Promedio</p>
+                                    <p class="text-2xl font-bold text-trading-gold" x-text="systemStats.avgROI + '%'"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Charts -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="card rounded-xl p-6">
+                            <h3 class="text-lg font-semibold mb-4">Registros por Día</h3>
+                            <canvas id="registrationsChart" width="400" height="200"></canvas>
+                        </div>
+
+                        <div class="card rounded-xl p-6">
+                            <h3 class="text-lg font-semibold mb-4">Volumen de Trading</h3>
+                            <canvas id="volumeChart" width="400" height="200"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- System Status -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="card rounded-xl p-6">
+                            <h3 class="text-lg font-semibold mb-4">Estado del Sistema</h3>
+                            <div class="space-y-4">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-600">Servidor Principal:</span>
+                                    <div class="flex items-center">
+                                        <div class="w-3 h-3 status-online rounded-full mr-2"></div>
+                                        <span class="text-trading-success font-medium">Online</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-600">Base de Datos:</span>
+                                    <div class="flex items-center">
+                                        <div class="w-3 h-3 status-online rounded-full mr-2"></div>
+                                        <span class="text-trading-success font-medium">Conectada</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-600">API Trading:</span>
+                                    <div class="flex items-center">
+                                        <div class="w-3 h-3 status-online rounded-full mr-2"></div>
+                                        <span class="text-trading-success font-medium">Activa</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-600">Sistema de Pagos:</span>
+                                    <div class="flex items-center">
+                                        <div class="w-3 h-3 status-online rounded-full mr-2"></div>
+                                        <span class="text-trading-success font-medium">Operativo</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card rounded-xl p-6">
+                            <h3 class="text-lg font-semibold mb-4">Actividad Reciente</h3>
+                            <div class="space-y-3">
+                                <template x-for="activity in recentActivity" :key="activity.id">
+                                    <div class="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0">
+                                        <div>
+                                            <p class="text-sm font-medium text-gray-900" x-text="activity.description"></p>
+                                            <p class="text-xs text-gray-500" x-text="activity.time"></p>
+                                        </div>
+                                        <span :class="activity.type === 'success' ? 'bg-green-100 text-green-800' : 
+                                                      activity.type === 'warning' ? 'bg-yellow-100 text-yellow-800' : 
+                                                      'bg-red-100 text-red-800'"
+                                              class="px-2 py-1 rounded-full text-xs font-medium" x-text="activity.status"></span>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Users Tab -->
+                <div x-show="activeTab === 'users'" class="space-y-6">
+                    <!-- User Management Header -->
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-lg font-semibold text-white">Gestión de Usuarios</h3>
+                            <p class="text-gray-300">Administra todos los usuarios del sistema</p>
+                        </div>
+                        <div class="flex space-x-3">
+                            <input type="text" placeholder="Buscar usuarios..." 
+                                   class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mlm-blue focus:border-transparent">
+                            <button class="btn-primary text-white px-4 py-2 rounded-lg">
+                                <i class="fas fa-plus mr-2"></i>
+                                Nuevo Usuario
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Users Table -->
+                    <div class="card rounded-xl p-6">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm">
+                                <thead>
+                                    <tr class="border-b border-gray-200">
+                                        <th class="text-left py-3">Usuario</th>
+                                        <th class="text-left py-3">Email</th>
+                                        <th class="text-left py-3">Plan</th>
+                                        <th class="text-left py-3">Balance</th>
+                                        <th class="text-left py-3">Estado</th>
+                                        <th class="text-left py-3">Registro</th>
+                                        <th class="text-left py-3">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <template x-for="user in users" :key="user.id">
+                                        <tr class="border-b border-gray-100 hover:bg-gray-50">
+                                            <td class="py-3">
+                                                <div class="flex items-center">
+                                                    <img :src="user.avatar" :alt="user.name" class="w-8 h-8 rounded-full mr-3">
+                                                    <div>
+                                                        <p class="font-medium" x-text="user.name"></p>
+                                                        <p class="text-xs text-gray-500" x-text="'ID: ' + user.id"></p>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="py-3" x-text="user.email"></td>
+                                            <td class="py-3">
+                                                <span :class="user.plan === 'Enterprise' ? 'bg-purple-100 text-purple-800' : 
+                                                               user.plan === 'Professional' ? 'bg-blue-100 text-blue-800' : 
+                                                               'bg-green-100 text-green-800'"
+                                                      class="px-2 py-1 rounded-full text-xs font-medium" x-text="user.plan"></span>
+                                            </td>
+                                            <td class="py-3 font-semibold" x-text="formatCurrency(user.balance)"></td>
+                                            <td class="py-3">
+                                                <span :class="user.status === 'active' ? 'bg-green-100 text-green-800' : 
+                                                               user.status === 'suspended' ? 'bg-red-100 text-red-800' : 
+                                                               'bg-yellow-100 text-yellow-800'"
+                                                      class="px-2 py-1 rounded-full text-xs font-medium" x-text="user.statusLabel"></span>
+                                            </td>
+                                            <td class="py-3 text-gray-600" x-text="user.registrationDate"></td>
+                                            <td class="py-3">
+                                                <div class="flex space-x-2">
+                                                    <button class="text-blue-600 hover:text-blue-800" title="Ver">
+                                                        <i class="fas fa-eye"></i>
+                                                    </button>
+                                                    <button class="text-green-600 hover:text-green-800" title="Editar">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <button class="text-red-600 hover:text-red-800" title="Suspender">
+                                                        <i class="fas fa-ban"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MLM Tab -->
+                <div x-show="activeTab === 'mlm'" class="space-y-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- MLM Stats -->
+                        <div class="card rounded-xl p-6">
+                            <h3 class="text-lg font-semibold mb-4">Estadísticas MLM</h3>
+                            <div class="space-y-4">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Total Niveles:</span>
+                                    <span class="font-semibold">5</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Comisiones Pagadas:</span>
+                                    <span class="font-semibold text-trading-success">$125,450</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Red Total:</span>
+                                    <span class="font-semibold">2,847 usuarios</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Líderes Activos:</span>
+                                    <span class="font-semibold">156</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Top Performers -->
+                        <div class="lg:col-span-2 card rounded-xl p-6">
+                            <h3 class="text-lg font-semibold mb-4">Top Performers MLM</h3>
+                            <div class="space-y-3">
+                                <template x-for="performer in topPerformers" :key="performer.id">
+                                    <div class="flex items-center justify-between py-3 border-b border-gray-100 last:border-b-0">
+                                        <div class="flex items-center">
+                                            <img :src="performer.avatar" :alt="performer.name" class="w-10 h-10 rounded-full mr-4">
+                                            <div>
+                                                <p class="font-medium" x-text="performer.name"></p>
+                                                <p class="text-sm text-gray-500" x-text="performer.networkSize + ' referidos'"></p>
+                                            </div>
+                                        </div>
+                                        <div class="text-right">
+                                            <p class="font-semibold text-trading-success" x-text="formatCurrency(performer.totalCommissions)"></p>
+                                            <p class="text-sm text-gray-500" x-text="performer.rank"></p>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Trading Tab -->
+                <div x-show="activeTab === 'trading'" class="space-y-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Bot Control -->
+                        <div class="card rounded-xl p-6">
+                            <h3 class="text-lg font-semibold mb-4">Control de Bots</h3>
+                            <div class="space-y-4">
+                                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                                    <div>
+                                        <p class="font-medium">Bot Principal</p>
+                                        <p class="text-sm text-gray-600">Trading automático</p>
+                                    </div>
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-3 h-3 status-online rounded-full pulse-animation"></div>
+                                        <button class="bg-red-100 hover:bg-red-200 text-red-800 px-3 py-1 rounded-full text-sm">
+                                            Detener
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                                    <div>
+                                        <p class="font-medium">Bot Arbitraje</p>
+                                        <p class="text-sm text-gray-600">Oportunidades de arbitraje</p>
+                                    </div>
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-3 h-3 status-online rounded-full pulse-animation"></div>
+                                        <button class="bg-red-100 hover:bg-red-200 text-red-800 px-3 py-1 rounded-full text-sm">
+                                            Detener
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Trading Stats -->
+                        <div class="card rounded-xl p-6">
+                            <h3 class="text-lg font-semibold mb-4">Estadísticas de Trading</h3>
+                            <div class="space-y-4">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Operaciones Hoy:</span>
+                                    <span class="font-semibold">1,247</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Tasa de Éxito:</span>
+                                    <span class="font-semibold text-trading-success">87.3%</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Ganancia Hoy:</span>
+                                    <span class="font-semibold text-trading-success">$12,450</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Volumen 24h:</span>
+                                    <span class="font-semibold">$2.4M</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Finances Tab -->
+                <div x-show="activeTab === 'finances'" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div class="card rounded-xl p-6">
+                            <div class="flex items-center">
+                                <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-arrow-up text-green-600 text-xl"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <p class="text-sm text-gray-600">Ingresos Totales</p>
+                                    <p class="text-2xl font-bold text-trading-success">$847,290</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card rounded-xl p-6">
+                            <div class="flex items-center">
+                                <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-arrow-down text-red-600 text-xl"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <p class="text-sm text-gray-600">Retiros Pendientes</p>
+                                    <p class="text-2xl font-bold text-red-600">$45,230</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card rounded-xl p-6">
+                            <div class="flex items-center">
+                                <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-percentage text-blue-600 text-xl"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <p class="text-sm text-gray-600">Comisiones MLM</p>
+                                    <p class="text-2xl font-bold text-blue-600">$125,450</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card rounded-xl p-6">
+                            <div class="flex items-center">
+                                <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-wallet text-purple-600 text-xl"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <p class="text-sm text-gray-600">Balance Sistema</p>
+                                    <p class="text-2xl font-bold text-purple-600">$1.2M</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Financial Chart -->
+                    <div class="card rounded-xl p-6">
+                        <h3 class="text-lg font-semibold mb-4">Flujo de Caja (Últimos 30 días)</h3>
+                        <canvas id="cashFlowChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+
+                <!-- Withdrawals Tab -->
+                <div x-show="activeTab === 'withdrawals'" class="space-y-6">
+                    <!-- Withdrawal Requests -->
+                    <div class="card rounded-xl p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold">Solicitudes de Retiro</h3>
+                            <div class="flex space-x-2">
+                                <select class="px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                                    <option>Todos los estados</option>
+                                    <option>Pendiente</option>
+                                    <option>Aprobado</option>
+                                    <option>Rechazado</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm">
+                                <thead>
+                                    <tr class="border-b border-gray-200">
+                                        <th class="text-left py-3">Usuario</th>
+                                        <th class="text-left py-3">Monto</th>
+                                        <th class="text-left py-3">Método</th>
+                                        <th class="text-left py-3">Fecha</th>
+                                        <th class="text-left py-3">Estado</th>
+                                        <th class="text-left py-3">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <template x-for="withdrawal in withdrawals" :key="withdrawal.id">
+                                        <tr class="border-b border-gray-100 hover:bg-gray-50">
+                                            <td class="py-3">
+                                                <div class="flex items-center">
+                                                    <img :src="withdrawal.userAvatar" :alt="withdrawal.userName" class="w-8 h-8 rounded-full mr-3">
+                                                    <div>
+                                                        <p class="font-medium" x-text="withdrawal.userName"></p>
+                                                        <p class="text-xs text-gray-500" x-text="withdrawal.userEmail"></p>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="py-3 font-semibold" x-text="formatCurrency(withdrawal.amount)"></td>
+                                            <td class="py-3" x-text="withdrawal.method"></td>
+                                            <td class="py-3 text-gray-600" x-text="withdrawal.date"></td>
+                                            <td class="py-3">
+                                                <span :class="withdrawal.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
+                                                               withdrawal.status === 'approved' ? 'bg-green-100 text-green-800' : 
+                                                               'bg-red-100 text-red-800'"
+                                                      class="px-2 py-1 rounded-full text-xs font-medium" x-text="withdrawal.statusLabel"></span>
+                                            </td>
+                                            <td class="py-3">
+                                                <div class="flex space-x-2" x-show="withdrawal.status === 'pending'">
+                                                    <button class="bg-green-100 hover:bg-green-200 text-green-800 px-3 py-1 rounded-full text-xs">
+                                                        Aprobar
+                                                    </button>
+                                                    <button class="bg-red-100 hover:bg-red-200 text-red-800 px-3 py-1 rounded-full text-xs">
+                                                        Rechazar
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Settings Tab -->
+                <div x-show="activeTab === 'settings'" class="space-y-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- System Settings -->
+                        <div class="card rounded-xl p-6">
+                            <h3 class="text-lg font-semibold mb-4">Configuración del Sistema</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Comisión MLM (%)</label>
+                                    <input type="number" value="15" class="w-full px-4 py-3 border border-gray-300 rounded-lg">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Mínimo de Retiro ($)</label>
+                                    <input type="number" value="100" class="w-full px-4 py-3 border border-gray-300 rounded-lg">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Máximo de Retiro ($)</label>
+                                    <input type="number" value="10000" class="w-full px-4 py-3 border border-gray-300 rounded-lg">
+                                </div>
+                                <button class="w-full btn-primary text-white py-3 rounded-lg">
+                                    Guardar Configuración
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Trading Settings -->
+                        <div class="card rounded-xl p-6">
+                            <h3 class="text-lg font-semibold mb-4">Configuración de Trading</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">ROI Diario (%)</label>
+                                    <input type="number" value="2.5" step="0.1" class="w-full px-4 py-3 border border-gray-300 rounded-lg">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Riesgo Máximo (%)</label>
+                                    <input type="number" value="5" class="w-full px-4 py-3 border border-gray-300 rounded-lg">
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm font-medium text-gray-700">Trading Automático</span>
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" checked class="sr-only peer">
+                                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-mlm-blue"></div>
+                                    </label>
+                                </div>
+                                <button class="w-full btn-primary text-white py-3 rounded-lg">
+                                    Aplicar Configuración
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Logs Tab -->
+                <div x-show="activeTab === 'logs'" class="space-y-6">
+                    <div class="card rounded-xl p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold">Logs del Sistema</h3>
+                            <div class="flex space-x-2">
+                                <select class="px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                                    <option>Todos los tipos</option>
+                                    <option>Info</option>
+                                    <option>Warning</option>
+                                    <option>Error</option>
+                                </select>
+                                <button class="btn-primary text-white px-4 py-2 rounded-lg text-sm">
+                                    <i class="fas fa-download mr-2"></i>
+                                    Exportar
+                                </button>
+                            </div>
+                        </div>
+                        <div class="bg-gray-900 rounded-lg p-4 h-96 overflow-y-auto font-mono text-sm">
+                            <template x-for="log in systemLogs" :key="log.id">
+                                <div class="mb-2">
+                                    <span class="text-gray-400" x-text="log.timestamp"></span>
+                                    <span :class="log.level === 'ERROR' ? 'text-red-400' : 
+                                                  log.level === 'WARNING' ? 'text-yellow-400' : 
+                                                  'text-green-400'"
+                                          class="ml-2" x-text="'[' + log.level + ']'"></span>
+                                    <span class="text-white ml-2" x-text="log.message"></span>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function adminApp() {
+            return {
+                activeTab: 'dashboard',
+                
+                systemStats: {
+                    totalUsers: 2847,
+                    activeUsers: 1256,
+                    totalVolume: 2450000,
+                    activeBots: 12,
+                    avgROI: 28.5
+                },
+
+                recentActivity: [
+                    {
+                        id: 1,
+                        description: 'Nuevo usuario registrado',
+                        time: 'Hace 5 min',
+                        type: 'success',
+                        status: 'Éxito'
+                    },
+                    {
+                        id: 2,
+                        description: 'Bot de trading reiniciado',
+                        time: 'Hace 15 min',
+                        type: 'warning',
+                        status: 'Advertencia'
+                    },
+                    {
+                        id: 3,
+                        description: 'Retiro procesado exitosamente',
+                        time: 'Hace 30 min',
+                        type: 'success',
+                        status: 'Éxito'
+                    }
+                ],
+
+                users: [
+                    {
+                        id: 1,
+                        name: 'Juan Pérez',
+                        email: 'juan@email.com',
+                        plan: 'Professional',
+                        balance: 15420.50,
+                        status: 'active',
+                        statusLabel: 'Activo',
+                        registrationDate: '2024-01-15',
+                        avatar: 'https://via.placeholder.com/32x32/2563eb/ffffff?text=JP'
+                    },
+                    {
+                        id: 2,
+                        name: 'María García',
+                        email: 'maria@email.com',
+                        plan: 'Enterprise',
+                        balance: 28750.00,
+                        status: 'active',
+                        statusLabel: 'Activo',
+                        registrationDate: '2024-01-12',
+                        avatar: 'https://via.placeholder.com/32x32/7c3aed/ffffff?text=MG'
+                    },
+                    {
+                        id: 3,
+                        name: 'Carlos López',
+                        email: 'carlos@email.com',
+                        plan: 'Starter',
+                        balance: 5680.25,
+                        status: 'suspended',
+                        statusLabel: 'Suspendido',
+                        registrationDate: '2024-01-10',
+                        avatar: 'https://via.placeholder.com/32x32/059669/ffffff?text=CL'
+                    }
+                ],
+
+                topPerformers: [
+                    {
+                        id: 1,
+                        name: 'Ana Martínez',
+                        networkSize: 156,
+                        totalCommissions: 12450.00,
+                        rank: 'Diamond Leader',
+                        avatar: 'https://via.placeholder.com/40x40/dc2626/ffffff?text=AM'
+                    },
+                    {
+                        id: 2,
+                        name: 'Roberto Silva',
+                        networkSize: 124,
+                        totalCommissions: 9850.00,
+                        rank: 'Gold Leader',
+                        avatar: 'https://via.placeholder.com/40x40/2563eb/ffffff?text=RS'
+                    },
+                    {
+                        id: 3,
+                        name: 'Laura Rodríguez',
+                        networkSize: 98,
+                        totalCommissions: 7650.00,
+                        rank: 'Silver Leader',
+                        avatar: 'https://via.placeholder.com/40x40/7c3aed/ffffff?text=LR'
+                    }
+                ],
+
+                withdrawals: [
+                    {
+                        id: 1,
+                        userName: 'Juan Pérez',
+                        userEmail: 'juan@email.com',
+                        userAvatar: 'https://via.placeholder.com/32x32/2563eb/ffffff?text=JP',
+                        amount: 1500.00,
+                        method: 'Banco',
+                        date: '2024-01-15',
+                        status: 'pending',
+                        statusLabel: 'Pendiente'
+                    },
+                    {
+                        id: 2,
+                        userName: 'María García',
+                        userEmail: 'maria@email.com',
+                        userAvatar: 'https://via.placeholder.com/32x32/7c3aed/ffffff?text=MG',
+                        amount: 2500.00,
+                        method: 'PayPal',
+                        date: '2024-01-14',
+                        status: 'approved',
+                        statusLabel: 'Aprobado'
+                    },
+                    {
+                        id: 3,
+                        userName: 'Carlos López',
+                        userEmail: 'carlos@email.com',
+                        userAvatar: 'https://via.placeholder.com/32x32/059669/ffffff?text=CL',
+                        amount: 750.00,
+                        method: 'Crypto',
+                        date: '2024-01-13',
+                        status: 'rejected',
+                        statusLabel: 'Rechazado'
+                    }
+                ],
+
+                systemLogs: [
+                    {
+                        id: 1,
+                        timestamp: '2024-01-15 14:30:25',
+                        level: 'INFO',
+                        message: 'Sistema iniciado correctamente'
+                    },
+                    {
+                        id: 2,
+                        timestamp: '2024-01-15 14:25:18',
+                        level: 'WARNING',
+                        message: 'Conexión lenta a API de trading'
+                    },
+                    {
+                        id: 3,
+                        timestamp: '2024-01-15 14:20:12',
+                        level: 'ERROR',
+                        message: 'Error temporal en base de datos'
+                    },
+                    {
+                        id: 4,
+                        timestamp: '2024-01-15 14:15:05',
+                        level: 'INFO',
+                        message: 'Backup automático completado'
+                    }
+                ],
+
+                getTabTitle() {
+                    const titles = {
+                        'dashboard': 'Dashboard General',
+                        'users': 'Gestión de Usuarios',
+                        'mlm': 'Control de Red MLM',
+                        'trading': 'Control de Trading',
+                        'finances': 'Gestión Financiera',
+                        'withdrawals': 'Gestión de Retiros',
+                        'settings': 'Configuración del Sistema',
+                        'logs': 'Logs del Sistema'
+                    };
+                    return titles[this.activeTab] || 'Panel de Administración';
+                },
+
+                formatCurrency(amount) {
+                    return new Intl.NumberFormat('en-US', {
+                        style: 'currency',
+                        currency: 'USD'
+                    }).format(amount);
+                },
+
+                init() {
+                    this.$nextTick(() => {
+                        this.initCharts();
+                    });
+                },
+
+                initCharts() {
+                    // Registrations Chart
+                    const registrationsCtx = document.getElementById('registrationsChart');
+                    if (registrationsCtx) {
+                        new Chart(registrationsCtx, {
+                            type: 'line',
+                            data: {
+                                labels: ['1', '2', '3', '4', '5', '6', '7'],
+                                datasets: [{
+                                    label: 'Registros',
+                                    data: [12, 19, 8, 15, 25, 18, 22],
+                                    borderColor: '#2563eb',
+                                    backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                                    tension: 0.4,
+                                    fill: true
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: { legend: { display: false } },
+                                scales: {
+                                    y: { beginAtZero: true },
+                                    x: { grid: { display: false } }
+                                }
+                            }
+                        });
+                    }
+
+                    // Volume Chart
+                    const volumeCtx = document.getElementById('volumeChart');
+                    if (volumeCtx) {
+                        new Chart(volumeCtx, {
+                            type: 'bar',
+                            data: {
+                                labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
+                                datasets: [{
+                                    label: 'Volumen ($)',
+                                    data: [120000, 190000, 300000, 250000, 280000, 350000, 420000],
+                                    backgroundColor: 'rgba(124, 58, 237, 0.8)',
+                                    borderColor: '#7c3aed'
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: { legend: { display: false } },
+                                scales: {
+                                    y: { beginAtZero: true },
+                                    x: { grid: { display: false } }
+                                }
+                            }
+                        });
+                    }
+
+                    // Cash Flow Chart
+                    const cashFlowCtx = document.getElementById('cashFlowChart');
+                    if (cashFlowCtx) {
+                        new Chart(cashFlowCtx, {
+                            type: 'line',
+                            data: {
+                                labels: Array.from({length: 30}, (_, i) => i + 1),
+                                datasets: [
+                                    {
+                                        label: 'Ingresos',
+                                        data: Array.from({length: 30}, () => Math.random() * 50000 + 20000),
+                                        borderColor: '#00ff88',
+                                        backgroundColor: 'rgba(0, 255, 136, 0.1)',
+                                        tension: 0.4
+                                    },
+                                    {
+                                        label: 'Retiros',
+                                        data: Array.from({length: 30}, () => Math.random() * 30000 + 10000),
+                                        borderColor: '#ff6b6b',
+                                        backgroundColor: 'rgba(255, 107, 107, 0.1)',
+                                        tension: 0.4
+                                    }
+                                ]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                scales: {
+                                    y: { beginAtZero: true },
+                                    x: { grid: { display: false } }
+                                }
+                            }
+                        });
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>

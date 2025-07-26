@@ -26,7 +26,9 @@ Sistema de Marketing Multi-Nivel (MLM) para trading automático con inteligencia
 botia-mlm-trading/
 ├── pages/
 │   ├── login.html          # Página de inicio de sesión
-│   └── registro.html       # Página de registro MLM
+│   ├── registro.html       # Página de registro MLM
+│   ├── dashboard.html      # Dashboard de usuario
+│   └── admin.html          # Panel de administración
 ├── src/
 │   └── input.css          # Estilos base de Tailwind
 ├── dist/                  # Archivos compilados
@@ -109,6 +111,24 @@ npm run dev
 - Sistema de referidos MLM
 - Selección de planes de inversión
 
+### 4. Dashboard de Usuario (`pages/dashboard.html`)
+- **Resumen General**: Estadísticas, gráficos de rendimiento y actividad reciente
+- **Bot de Trading**: Control y monitoreo del bot, operaciones actuales
+- **Red MLM**: Visualización de la red, comisiones y rangos
+- **Billetera**: Balance, transacciones y acciones rápidas
+- **Referidos**: Enlace personalizado, estadísticas y referidos recientes
+- **Configuración**: Perfil, seguridad y notificaciones
+
+### 5. Panel de Administración (`pages/admin.html`)
+- **Dashboard General**: Estadísticas del sistema y monitoreo
+- **Gestión de Usuarios**: CRUD completo de usuarios y estados
+- **Control MLM**: Top performers y estadísticas de red
+- **Control de Trading**: Manejo de bots y estadísticas
+- **Finanzas**: Flujo de caja, ingresos y balance del sistema
+- **Gestión de Retiros**: Aprobación y seguimiento de retiros
+- **Configuración**: Parámetros del sistema y trading
+- **Logs**: Monitoreo en tiempo real del sistema
+
 ## 💰 Planes de Inversión
 
 | Plan | Precio | Comisión MLM | Características |
@@ -157,16 +177,38 @@ Modificar `src/input.css` para agregar estilos personalizados:
 - ✅ Tablets y desktop
 - ✅ Responsive design
 
+## ✅ Características Implementadas
+
+- [x] **Página Principal** (`index.html`) - Hero section con animaciones y estadísticas
+- [x] **Sistema de Login** (`pages/login.html`) - Autenticación con validaciones
+- [x] **Registro MLM** (`pages/registro.html`) - Proceso de registro en 3 pasos
+- [x] **Dashboard de Usuario** (`pages/dashboard.html`) - Panel completo con:
+  - Resumen general con estadísticas y gráficos
+  - Control del bot de trading en tiempo real
+  - Gestión de red MLM con visualización
+  - Billetera con historial de transacciones
+  - Sistema de referidos con enlaces personalizados
+  - Configuración de perfil y seguridad
+- [x] **Panel de Administración** (`pages/admin.html`) - Control administrativo con:
+  - Dashboard general del sistema
+  - Gestión completa de usuarios
+  - Control de red MLM y top performers
+  - Monitoreo de bots de trading
+  - Gestión financiera y flujo de caja
+  - Aprobación de retiros
+  - Configuración del sistema
+  - Logs y monitoreo en tiempo real
+
 ## 🚀 Próximas Características
 
-- [ ] Dashboard de usuario
-- [ ] Panel de administración
-- [ ] API backend
-- [ ] Base de datos
-- [ ] Sistema de pagos
-- [ ] Notificaciones push
-- [ ] Gráficos de trading en tiempo real
-- [ ] Sistema de chat/soporte
+- [ ] API backend con Node.js/Express
+- [ ] Base de datos MySQL/PostgreSQL
+- [ ] Sistema de pagos (Stripe, PayPal, Crypto)
+- [ ] Notificaciones push y email
+- [ ] Integración con APIs de trading reales
+- [ ] Sistema de chat/soporte en vivo
+- [ ] App móvil (React Native/Flutter)
+- [ ] Módulo de KYC/AML
 
 ## 🤝 Contribución
 
